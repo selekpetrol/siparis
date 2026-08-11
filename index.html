@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raf Eksik Ürün Raporlama</title>
+  <!-- HTML'i Görsele (JPEG) Dönüştürmek İçin Kütüphane -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --marlboro: #e53935;  /* Kırmızı */
+      --winston: #f57c00;   /* Turuncu */
+      --tekel: #1e88e5;     /* Mavi */
+      --davidoff: #ffffff;  /* Beyaz */
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 80px;
+    }
+
+    header {
+      background-color: #2c2c2c;
+      padding: 15px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .container {
+      padding: 15px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px 10px;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 80px;
+      word-break: break-word;
+      transition: transform 0.1s;
+    }
+
+    .card:active {
+      transform: scale(0.96);
+    }
+
+    /* Grup Renk Tanımlamaları */
+    .card.MARLBORO { border-left: 8px solid var(--marlboro); }
+    .card.WINSTON { border-left: 8px solid var(--winston); }
+    .card.TEKEL { border-left: 8px solid var(--tekel); }
+    .card.DAVIDOFF { border-left: 8px solid var(--davidoff); color: #fff; }
+
+    /* Alt Navigasyon Barı */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background-color: #1f1f1f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-back { background-color: #424242; color: #fff; }
+    .btn-cart { background-color: #4caf50; color: #fff; }
+    .btn-submit { background-color: #2196f3; color: #fff; width: 100%; padding: 15px; font-size: 16px; margin-top: 15px; }
+
+    /* Sepet & Rapor Görünümü */
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2a2a2a;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .qty-btn {
+      background: #444;
+      color: #fff;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Paylaşım / Form Görsel Şablonu */
+    #report-template {
+      background: #ffffff;
+      color: #000000;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .report-group {
+      margin-bottom: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .report-group-header {
+      font-size: 16px;
+      font-weight: bold;
+      padding: 8px 12px;
+      color: #fff;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .group-MARLBORO { background-color: var(--marlboro); }
+    .group-WINSTON { background-color: var(--winston); }
+    .group-TEKEL { background-color: var(--tekel); }
+    .group-DAVIDOFF { background-color: #333; color: #fff; }
+
+    .report-brand-section {
+      margin-left: 5px;
+      margin-bottom: 12px;
+    }
+
+    .report-brand-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #222;
+      margin-bottom: 6px;
+      background: #f4f4f4;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border-left: 4px solid #555;
+    }
+
+    /* Ürün Girintisi Düzenlemeleri */
+    .report-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 8px 5px 20px; /* Sol taraftan yüksek girinti */
+      font-size: 13px;
+      border-bottom: 1px dashed #eee;
+      position: relative;
+    }
+
+    /* Ürünün alt başlık olduğunu gösteren görsel mersi/çizgi */
+    .report-row::before {
+      content: "•";
+      position: absolute;
+      left: 8px;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2 id="header-title">Grup Seçin</h2>
+  </header>
+
+  <div class="container">
+    <!-- Seçim Alanı -->
+    <div id="selection-screen" class="grid"></div>
+
+    <!-- Sepet Alanı -->
+    <div id="cart-screen" class="hidden">
+      <h3>Eksik Ürün Adetleri</h3>
+      <div id="cart-list" style="margin-top: 15px;"></div>
+      
+      <!-- JPEG çıktısı alınacak rapor alanı -->
+      <div id="report-template" class="hidden">
+        <h2 style="text-align: center; margin-bottom: 5px; color: #111;">RAF EKSİK ÜRÜN RAPORU</h2>
+        <p id="report-date" style="text-align: center; font-size: 12px; margin-bottom: 15px; color: #666;"></p>
+        <div id="report-content"></div>
+      </div>
+
+      <button id="btn-generate-form" class="btn btn-submit" onclick="generateAndShare()">Sipariş Formu Oluştur & Paylaş</button>
+    </div>
+  </div>
+
+  <!-- Alt Bar -->
+  <div class="bottom-bar">
+    <button class="btn btn-back" onclick="handleBackAction()">Geri</button>
+    <button class="btn btn-cart" onclick="navigateTo('CART')">Sepeti Tamamla (<span id="cart-count">0</span>)</button>
+  </div>
+
+  <script>
+    const productsData = [
+      ["DAVIDOFF","BIANCA","BİANCA ROSE SLİMS (RC BOX)"],
+      ["DAVIDOFF","DAVIDOFF","BURGUNDY"],
+      ["DAVIDOFF","DAVIDOFF","IVORYKISA"],
+      ["DAVIDOFF","DAVIDOFF","IVORYSLİMS"],
+      ["DAVIDOFF","DAVIDOFF","WHITE"],
+      ["DAVIDOFF","DAVIDOFF","WHITESLIMS"],
+      ["DAVIDOFF","POLO","SLİMS BLUE RCBOX"],
+      ["DAVIDOFF","POLO","SLİMS GREY(RCBOX)"],
+      ["DAVIDOFF","WEST","WEST GREY (KS RC BOX)"],
+      ["DAVIDOFF","WEST","WEST NAVY"],
+      ["DAVIDOFF","WEST","WEST ONE"],
+      ["MARLBORO","CHESTERFIELD","MODE NAVV"],
+      ["MARLBORO","CHESTERFIELD","CH NAVY BLUE 100 RCB"],
+      ["MARLBORO","CHESTERFIELD","CH NAVY BLUE RCB"],
+      ["MARLBORO","LM","RED BOX"],
+      ["MARLBORO","LM","RED"],
+      ["MARLBORO","LARK","LARK BLUE 100 RCB"],
+      ["MARLBORO","LARK","LARK BLUE REC RC"],
+      ["MARLBORO","MARLBORO","RED"],
+      ["MARLBORO","MARLBORO","EDGE"],
+      ["MARLBORO","MARLBORO","EDGE BLUE"],
+      ["MARLBORO","MARLBORO","EDGE SLIMS"],
+      ["MARLBORO","MARLBORO","KISA BOX"],
+      ["MARLBORO","MARLBORO","TOUCH BLUE"],
+      ["MARLBORO","MARLBORO","TOUCH GRAY"],
+      ["MARLBORO","MARLBORO","TOUCH WHITE"],
+      ["MARLBORO","MARLBORO","TOUCH"],
+      ["MARLBORO","MURATTI","ROSSO"],
+      ["MARLBORO","MURATTI","BLU"],
+      ["MARLBORO","PARLIAMENT","AQUA SLIMS"],
+      ["MARLBORO","PARLIAMENT","MIDNIGHT BLUE"],
+      ["MARLBORO","PARLIAMENT","NIGHT KS RCB"],
+      ["MARLBORO","PARLIAMENT","MİDNİGHT BOX"],
+      ["MARLBORO","PARLIAMENT","AQUA B.KS RCB"],
+      ["MARLBORO","PARLIAMENT","NIGHT BLUE LONG KUTU"],
+      ["MARLBORO","PARLIAMENT","NIGHT BLUE SOFT LONG"],
+      ["MARLBORO","PARLIAMENT","RESERVE KS RC"],
+      ["WINSTON","CAMEL","BLACK"],
+      ["WINSTON","CAMEL","BROWN"],
+      ["WINSTON","CAMEL","DEEP BLUE"],
+      ["WINSTON","CAMEL","SLENDER BLUE"],
+      ["WINSTON","CAMEL","SLENDER GRAY"],
+      ["WINSTON","CAMEL","SLİM Q LİNE"],
+      ["WINSTON","CAMEL","WHITE"],
+      ["WINSTON","CAMEL","YELLOW KUTU"],
+      ["WINSTON","CAMEL","YELLOW LONG"],
+      ["WINSTON","CAMEL","YELLOW SP"],
+      ["WINSTON","CAMEL","YELLOW TÜTÜN"],
+      ["WINSTON","LD","LD BLUE"],
+      ["WINSTON","LD","LD BLUE 100 MM"],
+      ["WINSTON","LD","LD SLIMS"],
+      ["WINSTON","M.CARLO","NIGHT BLUE 100 CPB"],
+      ["WINSTON","M.CARLO","SLENDER DARK BLUE"],
+      ["WINSTON","M.CARLO","RED"],
+      ["WINSTON","M.CARLO","DARK BLUE"],
+      ["WINSTON","WINSTON","BLUE"],
+      ["WINSTON","WINSTON","BLUE LONG"],
+      ["WINSTON","WINSTON","RED KISA"],
+      ["WINSTON","WINSTON","RED LONG"],
+      ["WINSTON","WINSTON","SLENDER BLUE LONG"],
+      ["WINSTON","WINSTON","SLENDER Q LINE"],
+      ["WINSTON","WINSTON","SLIMS BLUE"],
+      ["WINSTON","WINSTON","SLIMS Q LINE"],
+      ["WINSTON","WINSTON","XSENCE BLACK"],
+      ["WINSTON","WINSTON","DARK BLUE"],
+      ["WINSTON","WINSTON","DARK BLUE LONG"],
+      ["WINSTON","WINSTON","DEEP BLUE"],
+      ["WINSTON","WINSTON","SLENDER BLUE"],
+      ["WINSTON","WINSTON","SLENDER GRAY"],
+      ["WINSTON","WINSTON","SLIMS GRAY"],
+      ["WINSTON","WINSTON","XSENCE GRAY"],
+      ["TEKEL","KENT","BLUE"],
+      ["TEKEL","KENT","D RANGE BLACK"],
+      ["TEKEL","KENT","D RANGE BLUE"],
+      ["TEKEL","KENT","D RANGE GREY"],
+      ["TEKEL","KENT","D RANGE GREY LONG"],
+      ["TEKEL","KENT","DARK BLUE"],
+      ["TEKEL","KENT","DARK BLUE LONG"],
+      ["TEKEL","KENT","D-RANCE BLUE LONG"],
+      ["TEKEL","KENT","SLIMS BLACK"],
+      ["TEKEL","KENT","SLIMS BLUE LONG"],
+      ["TEKEL","KENT","SLIMS GREY"],
+      ["TEKEL","KENT","SLIMS GREY LONG"],
+      ["TEKEL","KENT","SW DARK BLUE"],
+      ["TEKEL","KENT","SWITCH (KS RC BOX)"],
+      ["TEKEL","KENT","SWITCH BLUE LONG"],
+      ["TEKEL","KENT","SWİTCH BLUE"],
+      ["TEKEL","KENT","WHITE"],
+      ["TEKEL","PALLMALL","PALL MALL AMBER KISA (KS RC BO"],
+      ["TEKEL","PALLMALL","PALL MALL RED (KS RC BOX)"],
+      ["TEKEL","ROTHMANS","BLUE"],
+      ["TEKEL","ROTHMANS","BLUE LONG"],
+      ["TEKEL","ROTHMANS","DRANGE BLACK LONG"],
+      ["TEKEL","ROTHMANS","D-RANGE BLUE"],
+      ["TEKEL","ROTHMANS","DRANGE DARK"],
+      ["TEKEL","ROTHMANS","SLIMS BLUE LONG"],
+      ["TEKEL","SAMSUN","SAMSUN KIRMIZI UZUN"],
+      ["TEKEL","TEKEL","TEKEL 2000 KIRMIZI KISA BAX"],
+      ["TEKEL","TEKEL","TEKEL 2000 KIRMIZI UZUN SOFT"],
+      ["TEKEL","TEKEL","TEKEL 2000 MAVİ KISA BAX"],
+      ["TEKEL","TEKEL","TEKEL 2000 UZUN MAVİ KUTU (RC)"],
+      ["TEKEL","TEKEL","TEKEL 2001 KIRMIZI UZUN"],
+      ["TEKEL","TEKEL","TEKEL 2001 KIRMIZI(KISA SERT)"],
+      ["TEKEL","TEKEL","TEKEL 2001 UZUN MAVİ (RC BOX)"],
+      ["TEKEL","VICEROY","NAVY LONG"],
+      ["TEKEL","VICEROY","NAVY RC (RC BOX)"],
+      ["TEKEL","VICEROY","RED LONG UZUN"]
+    ];
+
+    let currentState = { step: 'GROUP', group: null, brand: null };
+    let cart = {}; 
+
+    const screenEl = document.getElementById('selection-screen');
+    const cartScreenEl = document.getElementById('cart-screen');
+    const titleEl = document.getElementById('header-title');
+
+    // Başlangıç durumunu ayarla
+    history.replaceState({ step: 'GROUP' }, '');
+    renderScreen(history.state);
+
+    // Telefonun Fiziksel Geri Tuşu Olayı
+    window.onpopstate = function(event) {
+      if (event.state) {
+        currentState = event.state;
+        renderScreen(currentState);
+      }
+    };
+
+    function navigateTo(step, group = null, brand = null) {
+      const newState = { step, group, brand };
+      currentState = newState;
+      history.pushState(newState, '');
+      renderScreen(newState);
+    }
+
+    function handleBackAction() {
+      window.history.back();
+    }
+
+    function renderScreen(state) {
+      if (state.step === 'GROUP') {
+        renderGroups();
+      } else if (state.step === 'BRAND') {
+        renderBrands(state.group);
+      } else if (state.step === 'PRODUCT') {
+        renderProducts(state.group, state.brand);
+      } else if (state.step === 'CART') {
+        renderCart();
+      }
+    }
+
+    function renderGroups() {
+      titleEl.innerText = "Grup Seçin";
+      screenEl.classList.remove('hidden');
+      cartScreenEl.classList.add('hidden');
+      screenEl.innerHTML = '';
+
+      const groups = [...new Set(productsData.map(item => item[0]))];
+      groups.forEach(group => {
+        const card = document.createElement('div');
+        card.className = `card ${group}`;
+        card.innerText = group;
+        card.onclick = () => navigateTo('BRAND', group);
+        screenEl.appendChild(card);
+      });
+    }
+
+    function renderBrands(group) {
+      titleEl.innerText = `${group} > Marka Seçin`;
+      screenEl.classList.remove('hidden');
+      cartScreenEl.classList.add('hidden');
+      screenEl.innerHTML = '';
+
+      const brands = [...new Set(productsData.filter(i => i[0] === group).map(i => i[1]))];
+      brands.forEach(brand => {
+        const card = document.createElement('div');
+        card.className = `card ${group}`;
+        card.innerText = brand;
+        card.onclick = () => navigateTo('PRODUCT', group, brand);
+        screenEl.appendChild(card);
+      });
+    }
+
+    function renderProducts(group, brand) {
+      titleEl.innerText = `${brand} > Ürün Seçin`;
+      screenEl.classList.remove('hidden');
+      cartScreenEl.classList.add('hidden');
+      screenEl.innerHTML = '';
+
+      const products = productsData.filter(i => i[0] === group && i[1] === brand);
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = `card ${group}`;
+        card.innerText = p[2];
+        card.onclick = () => addToCart(p);
+        screenEl.appendChild(card);
+      });
+    }
+
+    function addToCart(product) {
+      const key = `${product[0]}_${product[1]}_${product[2]}`;
+      if (cart[key]) {
+        cart[key].qty += 1;
+      } else {
+        cart[key] = {
+          group: product[0],
+          brand: product[1],
+          name: product[2],
+          qty: 1
+        };
+      }
+      updateCartBadge();
+      alert(`${product[2]} sepete eklendi.`);
+    }
+
+    function updateCartBadge() {
+      const total = Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+      document.getElementById('cart-count').innerText = total;
+    }
+
+    function renderCart() {
+      titleEl.innerText = "Sepet ve Eksik Listesi";
+      screenEl.classList.add('hidden');
+      cartScreenEl.classList.remove('hidden');
+
+      const cartList = document.getElementById('cart-list');
+      cartList.innerHTML = '';
+
+      const keys = Object.keys(cart);
+      if (keys.length === 0) {
+        cartList.innerHTML = '<p style="text-align:center; color:#888;">Sepetiniz boş.</p>';
+        return;
+      }
+
+      keys.forEach(key => {
+        const item = cart[key];
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+        row.innerHTML = `
+          <div>
+            <strong>${item.brand}</strong> - ${item.name}
+            <div style="font-size: 12px; color: #aaa;">${item.group}</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty('${key}', -1)">-</button>
+            <span>${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty('${key}', 1)">+</button>
+          </div>
+        `;
+        cartList.appendChild(row);
+      });
+    }
+
+    function changeQty(key, delta) {
+      if (cart[key]) {
+        cart[key].qty += delta;
+        if (cart[key].qty <= 0) {
+          delete cart[key];
+        }
+        updateCartBadge();
+        renderCart();
+      }
+    }
+
+    // Sipariş Formunu JPEG Olarak Oluşturma ve Paylaşma
+    async function generateAndShare() {
+      const keys = Object.keys(cart);
+      if (keys.length === 0) {
+        alert("Sepetinizde ürün bulunmamaktadır.");
+        return;
+      }
+
+      const reportTemplate = document.getElementById('report-template');
+      const reportContent = document.getElementById('report-content');
+      const reportDate = document.getElementById('report-date');
+      
+      reportDate.innerText = "Tarih: " + new Date().toLocaleString('tr-TR');
+      reportContent.innerHTML = '';
+
+      // 1. Veri Yapısını Dönüştür
+      const structuredData = {};
+
+      keys.forEach(key => {
+        const item = cart[key];
+        if (!structuredData[item.group]) {
+          structuredData[item.group] = { totalQty: 0, brands: {} };
+        }
+        structuredData[item.group].totalQty += item.qty;
+
+        if (!structuredData[item.group].brands[item.brand]) {
+          structuredData[item.group].brands[item.brand] = { totalQty: 0, items: [] };
+        }
+        structuredData[item.group].brands[item.brand].totalQty += item.qty;
+        structuredData[item.group].brands[item.brand].items.push(item);
+      });
+
+      // 2. Grupları Toplam Adede Göre Sırala
+      const sortedGroups = Object.keys(structuredData).sort((a, b) => {
+        return structuredData[b].totalQty - structuredData[a].totalQty;
+      });
+
+      // 3. HTML Çıktısını Oluştur (Üst Toplamlar Kaldırıldı & Marka Öneki Silindi)
+      sortedGroups.forEach(groupName => {
+        const groupObj = structuredData[groupName];
+        const groupEl = document.createElement('div');
+        groupEl.className = 'report-group';
+
+        let groupHeaderHtml = `
+          <div class="report-group-header group-${groupName}">
+            ${groupName}
+          </div>
+        `;
+
+        const sortedBrands = Object.keys(groupObj.brands).sort((a, b) => {
+          return groupObj.brands[b].totalQty - groupObj.brands[a].totalQty;
+        });
+
+        let brandsHtml = '';
+        sortedBrands.forEach(brandName => {
+          const brandObj = groupObj.brands[brandName];
+          brandObj.items.sort((a, b) => b.qty - a.qty);
+
+          let itemsHtml = '';
+          brandObj.items.forEach(item => {
+            itemsHtml += `
+              <div class="report-row">
+                <span>${item.name}</span>
+                <span><strong>${item.qty} Adet</strong></span>
+              </div>
+            `;
+          });
+
+          brandsHtml += `
+            <div class="report-brand-section">
+              <div class="report-brand-title">
+                ${brandName}
+              </div>
+              ${itemsHtml}
+            </div>
+          `;
+        });
+
+        groupEl.innerHTML = groupHeaderHtml + brandsHtml;
+        reportContent.appendChild(groupEl);
+      });
+
+      // Görsel Oluşturma İşlemi
+      reportTemplate.classList.remove('hidden');
+
+      try {
+        const canvas = await html2canvas(reportTemplate, { scale: 2 });
+        reportTemplate.classList.add('hidden');
+
+        canvas.toBlob(async (blob) => {
+          const file = new File([blob], `Raf_Eksik_Raporu_${Date.now()}.jpg`, { type: 'image/jpeg' });
+          
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: 'Raf Eksik Ürün Raporu',
+                text: 'Ekteki sipariş/eksik raporunu inceleyebilirsiniz.'
+              });
+            } catch (err) {
+              console.log('Paylaşım iptal edildi.', err);
+            }
+          } else {
+            const link = document.createElement('a');
+            link.download = file.name;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            alert("Görsel cihazınıza indirildi.");
+          }
+        }, 'image/jpeg', 0.95);
+
+      } catch (e) {
+        console.error("Görsel oluşturulamadı:", e);
+        reportTemplate.classList.add('hidden');
+        alert("Görsel oluşturulurken bir hata meydana geldi.");
+      }
+    }
+  </script>
+</body>
+</html>
