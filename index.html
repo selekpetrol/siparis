@@ -40,6 +40,34 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
 
+    /* Toast Bildirim Tasarımı */
+    #toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background-color: #4caf50;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      z-index: 2000;
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
     .container {
       padding: 15px;
       max-width: 600px;
@@ -188,13 +216,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 5px 8px 5px 20px; /* Sol taraftan yüksek girinti */
+      padding: 5px 8px 5px 20px;
       font-size: 13px;
       border-bottom: 1px dashed #eee;
       position: relative;
     }
 
-    /* Ürünün alt başlık olduğunu gösteren görsel mersi/çizgi */
     .report-row::before {
       content: "•";
       position: absolute;
@@ -207,6 +234,9 @@
   </style>
 </head>
 <body>
+
+  <!-- Sayfa Üstünde Çıkacak Toast Mesaj Alanı -->
+  <div id="toast"></div>
 
   <header>
     <h2 id="header-title">Grup Seçin</h2>
@@ -351,6 +381,7 @@
 
     let currentState = { step: 'GROUP', group: null, brand: null };
     let cart = {}; 
+    let toastTimeout = null;
 
     const screenEl = document.getElementById('selection-screen');
     const cartScreenEl = document.getElementById('cart-screen');
@@ -439,6 +470,18 @@
       });
     }
 
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message;
+      toast.classList.add('show');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
     function addToCart(product) {
       const key = `${product[0]}_${product[1]}_${product[2]}`;
       if (cart[key]) {
@@ -452,7 +495,7 @@
         };
       }
       updateCartBadge();
-      alert(`${product[2]} sepete eklendi.`);
+      showToast(`✓ ${product[2]} sepete eklendi`);
     }
 
     function updateCartBadge() {
@@ -508,7 +551,7 @@
     async function generateAndShare() {
       const keys = Object.keys(cart);
       if (keys.length === 0) {
-        alert("Sepetinizde ürün bulunmamaktadır.");
+        showToast("Sepetiniz boş!");
         return;
       }
 
@@ -541,7 +584,7 @@
         return structuredData[b].totalQty - structuredData[a].totalQty;
       });
 
-      // 3. HTML Çıktısını Oluştur (Üst Toplamlar Kaldırıldı & Marka Öneki Silindi)
+      // 3. HTML Çıktısını Oluştur
       sortedGroups.forEach(groupName => {
         const groupObj = structuredData[groupName];
         const groupEl = document.createElement('div');
@@ -611,14 +654,14 @@
             link.download = file.name;
             link.href = URL.createObjectURL(blob);
             link.click();
-            alert("Görsel cihazınıza indirildi.");
+            showToast("Görsel cihazınıza indirildi.");
           }
         }, 'image/jpeg', 0.95);
 
       } catch (e) {
         console.error("Görsel oluşturulamadı:", e);
         reportTemplate.classList.add('hidden');
-        alert("Görsel oluşturulurken bir hata meydana geldi.");
+        showToast("Görsel oluşturulurken hata oluştu.");
       }
     }
   </script>
