@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Raf Eksik Ürün Raporlama</title>
-  <!-- HTML'i Görsele (JPEG) Dönüştürmek İçin Kütüphane -->
+  <!-- HTML'i Görsele (JPEG) Dönüştürmek Için Kütüphane -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
@@ -253,7 +253,7 @@
       
       <!-- JPEG çıktısı alınacak rapor alanı -->
       <div id="report-template" class="hidden">
-        <h2 style="text-align: center; margin-bottom: 5px; color: #111;">RAF EKSİK ÜRÜN RAPORU</h2>
+        <h2 style="text-align: center; margin-bottom: 5px; color: #111;">RAF EKSIK ÜRÜN RAPORU</h2>
         <p id="report-date" style="text-align: center; font-size: 12px; margin-bottom: 15px; color: #666;"></p>
         <div id="report-content"></div>
       </div>
@@ -270,14 +270,14 @@
 
   <script>
     const productsData = [
-      ["DAVIDOFF","BIANCA","BİANCA ROSE SLİMS (RC BOX)"],
+      ["DAVIDOFF","BIANCA","BIANCA ROSE SLIMS (RC BOX)"],
       ["DAVIDOFF","DAVIDOFF","BURGUNDY"],
       ["DAVIDOFF","DAVIDOFF","IVORYKISA"],
-      ["DAVIDOFF","DAVIDOFF","IVORYSLİMS"],
+      ["DAVIDOFF","DAVIDOFF","IVORYSLIMS"],
       ["DAVIDOFF","DAVIDOFF","WHITE"],
       ["DAVIDOFF","DAVIDOFF","WHITESLIMS"],
-      ["DAVIDOFF","POLO","SLİMS BLUE RCBOX"],
-      ["DAVIDOFF","POLO","SLİMS GREY(RCBOX)"],
+      ["DAVIDOFF","POLO","SLIMS BLUE RCBOX"],
+      ["DAVIDOFF","POLO","SLIMS GREY(RCBOX)"],
       ["DAVIDOFF","WEST","WEST GREY (KS RC BOX)"],
       ["DAVIDOFF","WEST","WEST NAVY"],
       ["DAVIDOFF","WEST","WEST ONE"],
@@ -303,7 +303,7 @@
       ["MARLBORO","PARLIAMENT","AQUA SLIMS"],
       ["MARLBORO","PARLIAMENT","MIDNIGHT BLUE"],
       ["MARLBORO","PARLIAMENT","NIGHT KS RCB"],
-      ["MARLBORO","PARLIAMENT","MİDNİGHT BOX"],
+      ["MARLBORO","PARLIAMENT","MIDNIGHT BOX"],
       ["MARLBORO","PARLIAMENT","AQUA B.KS RCB"],
       ["MARLBORO","PARLIAMENT","NIGHT BLUE LONG KUTU"],
       ["MARLBORO","PARLIAMENT","NIGHT BLUE SOFT LONG"],
@@ -313,7 +313,7 @@
       ["WINSTON","CAMEL","DEEP BLUE"],
       ["WINSTON","CAMEL","SLENDER BLUE"],
       ["WINSTON","CAMEL","SLENDER GRAY"],
-      ["WINSTON","CAMEL","SLİM Q LİNE"],
+      ["WINSTON","CAMEL","SLIM Q LINE"],
       ["WINSTON","CAMEL","WHITE"],
       ["WINSTON","CAMEL","YELLOW KUTU"],
       ["WINSTON","CAMEL","YELLOW LONG"],
@@ -357,7 +357,7 @@
       ["TEKEL","KENT","SW DARK BLUE"],
       ["TEKEL","KENT","SWITCH (KS RC BOX)"],
       ["TEKEL","KENT","SWITCH BLUE LONG"],
-      ["TEKEL","KENT","SWİTCH BLUE"],
+      ["TEKEL","KENT","SWITCH BLUE"],
       ["TEKEL","KENT","WHITE"],
       ["TEKEL","PALLMALL","PALL MALL AMBER KISA (KS RC BO"],
       ["TEKEL","PALLMALL","PALL MALL RED (KS RC BOX)"],
@@ -370,11 +370,11 @@
       ["TEKEL","SAMSUN","SAMSUN KIRMIZI UZUN"],
       ["TEKEL","TEKEL","TEKEL 2000 KIRMIZI KISA BAX"],
       ["TEKEL","TEKEL","TEKEL 2000 KIRMIZI UZUN SOFT"],
-      ["TEKEL","TEKEL","TEKEL 2000 MAVİ KISA BAX"],
-      ["TEKEL","TEKEL","TEKEL 2000 UZUN MAVİ KUTU (RC)"],
+      ["TEKEL","TEKEL","TEKEL 2000 MAVI KISA BAX"],
+      ["TEKEL","TEKEL","TEKEL 2000 UZUN MAVI KUTU (RC)"],
       ["TEKEL","TEKEL","TEKEL 2001 KIRMIZI UZUN"],
       ["TEKEL","TEKEL","TEKEL 2001 KIRMIZI(KISA SERT)"],
-      ["TEKEL","TEKEL","TEKEL 2001 UZUN MAVİ (RC BOX)"],
+      ["TEKEL","TEKEL","TEKEL 2001 UZUN MAVI (RC BOX)"],
       ["TEKEL","VICEROY","NAVY LONG"],
       ["TEKEL","VICEROY","NAVY RC (RC BOX)"],
       ["TEKEL","VICEROY","RED LONG UZUN"]
@@ -630,7 +630,7 @@
         reportContent.appendChild(groupEl);
       });
 
-      // Görsel Oluşturma İşlemi
+      // Görsel Oluşturma Işlemi
       reportTemplate.classList.remove('hidden');
 
       try {
